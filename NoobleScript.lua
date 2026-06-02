@@ -1,4 +1,4 @@
--- [[ NOOBLESCRIPT: PREMIUM MONOLITHIC HUB V3.9.7 - MOBILE FLOATING BUTTON ]]
+-- [[ NOOBLESCRIPT: PREMIUM MONOLITHIC HUB V3.9.8 - REFINED GOLDEN DESIGN ]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -128,7 +128,7 @@ end
 local DrawLoaderInterface
 
 -------------------------------------------------------------------------------
--- 💻 ОСНОВНОЙ ИНТЕРФЕЙС ХАБА (ЗОЛОТОЙ ПРЕМИУМ СТИЛЬ)
+-- 💻 ОСНОВНОЙ ИНТЕРФЕЙС ХАБА (ОБНОВЛЕННЫЙ ПРЕМИУМ СТИЛЬ)
 -------------------------------------------------------------------------------
 local function LaunchMainScript(keyRecord)
     local subTier = keyRecord.tier or "Premium"
@@ -150,7 +150,7 @@ local function LaunchMainScript(keyRecord)
     MainFrame.Position = UDim2.new(0.5, -240, 0.5, -150)
     MainFrame.BackgroundColor3 = Color3.fromRGB(9, 13, 23)
     MainFrame.BorderSizePixel = 0
-    MainFrame.Visible = true -- По умолчанию открыт при инжекте
+    MainFrame.Visible = true
     MainFrame.Parent = CurrentMainGui
     MainFrameInstance = MainFrame
     
@@ -158,13 +158,13 @@ local function LaunchMainScript(keyRecord)
     MainCorner.CornerRadius = UDim.new(0, 12)
     
     local MainStroke = Instance.new("UIStroke", MainFrame)
-    MainStroke.Color = Color3.fromRGB(212, 143, 56) -- Премиум золото
+    MainStroke.Color = Color3.fromRGB(212, 143, 56) -- Золотой контур хаба
     MainStroke.Thickness = 1.2
     makeElementDraggable(MainFrame)
 
     -- Сайдбар
     local Sidebar = Instance.new("Frame", MainFrame)
-    Sidebar.Size = UDim2.new(0, 135, 1, 0)
+    Sidebar.Size = UDim2.new(0, 145, 1, 0)
     Sidebar.BackgroundColor3 = Color3.fromRGB(6, 9, 16)
     Sidebar.BorderSizePixel = 0
     
@@ -181,17 +181,19 @@ local function LaunchMainScript(keyRecord)
     Title.Size = UDim2.new(1, 0, 0, 45)
     Title.BackgroundTransparency = 1
     Title.Font = Enum.Font.GothamBold
-    Title.TextColor3 = Color3.fromRGB(212, 143, 56)
-    Title.TextSize = 13
+    Title.TextColor3 = Color3.fromRGB(212, 143, 56) -- Название чита золотым цветом
+    Title.TextSize = 14
     Title.Text = "NOOBLE HUB"
 
     local ContentFrame = Instance.new("Frame", MainFrame)
-    ContentFrame.Size = UDim2.new(1, -135, 1, 0)
-    ContentFrame.Position = UDim2.new(0, 135, 0, 0)
+    ContentFrame.Size = UDim2.new(1, -145, 1, 0)
+    ContentFrame.Position = UDim2.new(0, 145, 0, 0)
     ContentFrame.BackgroundTransparency = 1
 
     -- Вкладки
     local tabs = { Main = Instance.new("Frame"), Settings = Instance.new("Frame"), Info = Instance.new("Frame"), Profile = Instance.new("Frame") }
+    local ConsoleFrame = nil -- Ссылка для сброса позиции скролла
+    
     for name, f in pairs(tabs) do
         f.Size = UDim2.new(1, 0, 1, 0)
         f.BackgroundTransparency = 1
@@ -208,70 +210,88 @@ local function LaunchMainScript(keyRecord)
     local tabButtons = {}
     local ProfileBtn = nil
 
+    -- Логика переключения вкладок в стиле 20913.jpg (Без подложки, белый текст, золотая вертикальная линия слева)
     local function switchTab(tabName)
         for name, f in pairs(tabs) do f.Visible = (name == tabName) end
         
         for name, btn in pairs(tabButtons) do
+            local line = btn:FindFirstChild("IndicatorLine")
             if name == tabName then
-                btn.BackgroundColor3 = Color3.fromRGB(43, 31, 18)
-                btn.TextColor3 = Color3.fromRGB(212, 143, 56)
-                local stroke = btn:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke", btn)
-                stroke.Color = Color3.fromRGB(212, 143, 56)
+                btn.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый текст активной вкладки
+                if line then line.Visible = true end
             else
-                btn.BackgroundColor3 = Color3.fromRGB(10, 14, 24)
-                btn.TextColor3 = Color3.fromRGB(120, 120, 130)
-                local stroke = btn:FindFirstChildOfClass("UIStroke")
-                if stroke then stroke:Destroy() end
+                btn.TextColor3 = Color3.fromRGB(115, 122, 135) -- Серый текст неактивной вкладки
+                if line then line.Visible = false end
             end
         end
 
         if ProfileBtn then
+            local pLine = ProfileBtn:FindFirstChild("IndicatorLine")
             if tabName == "Profile" then
-                ProfileBtn.BackgroundColor3 = Color3.fromRGB(43, 31, 18)
-                ProfileBtn:FindFirstChildOfClass("UIStroke").Color = Color3.fromRGB(212, 143, 56)
+                if pLine then pLine.Visible = true end
             else
-                ProfileBtn.BackgroundColor3 = Color3.fromRGB(10, 14, 24)
-                ProfileBtn:FindFirstChildOfClass("UIStroke").Color = Color3.fromRGB(20, 28, 45)
+                if pLine then pLine.Visible = false end
             end
+        end
+
+        -- ФИКС КОНСОЛИ: При каждом переходе в Инфо возвращаем скролл в САМОЕ НАЧАЛО
+        if tabName == "Info" and ConsoleFrame then
+            task.defer(function()
+                ConsoleFrame.CanvasPosition = Vector2.new(0, 0)
+            end)
         end
     end
 
     local function createTabBtn(name, text, posy)
         local b = Instance.new("TextButton", Sidebar)
-        b.Size = UDim2.new(0, 115, 0, 34)
-        b.Position = UDim2.new(0, 10, 0, posy)
-        b.Text = "   " .. text
-        b.Font = Enum.Font.GothamBold
-        b.TextSize = 12
+        b.Size = UDim2.new(1, 0, 0, 36)
+        b.Position = UDim2.new(0, 0, 0, posy)
+        b.BackgroundTransparency = 1 -- Полностью убрали выделение плашкой
+        b.Text = "      " .. text
+        b.Font = Enum.Font.GothamMedium
+        b.TextSize = 13
+        b.TextColor3 = Color3.fromRGB(115, 122, 135)
         b.TextXAlignment = Enum.TextXAlignment.Left
         
-        local btnCorner = Instance.new("UICorner", b)
-        btnCorner.CornerRadius = UDim.new(0, 8)
+        -- Золотая вертикальная полоска индикатора (как на макете 20913.jpg)
+        local IndicatorLine = Instance.new("Frame", b)
+        IndicatorLine.Name = "IndicatorLine"
+        IndicatorLine.Size = UDim2.new(0, 3, 0, 20)
+        IndicatorLine.Position = UDim2.new(0, 0, 0.5, -10)
+        IndicatorLine.BackgroundColor3 = Color3.fromRGB(212, 143, 56) -- Золотой маркер вместо синего
+        IndicatorLine.BorderSizePixel = 0
+        IndicatorLine.Visible = false
+        
+        local ilCorner = Instance.new("UICorner", IndicatorLine)
+        ilCorner.CornerRadius = UDim.new(0, 2)
         
         tabButtons[name] = b
         b.MouseButton1Click:Connect(function() switchTab(name) end)
     end
     
-    createTabBtn("Main", "👤 Главная", 60)
-    createTabBtn("Settings", "⚙️ Настройки", 100)
-    createTabBtn("Info", "💾 Инфо", 140)
+    createTabBtn("Main", "👤  Главная", 65)
+    createTabBtn("Settings", "⚙️  Настройки", 105)
+    createTabBtn("Info", "💾  Инфо", 145)
 
-    -- Профиль в сайдбаре
+    -- Профиль в сайдбаре (Нижняя часть)
     ProfileBtn = Instance.new("TextButton", Sidebar)
-    ProfileBtn.Size = UDim2.new(0, 115, 0, 44)
-    ProfileBtn.Position = UDim2.new(0, 10, 1, -54)
-    ProfileBtn.BackgroundColor3 = Color3.fromRGB(10, 14, 24)
+    ProfileBtn.Size = UDim2.new(1, 0, 0, 50)
+    ProfileBtn.Position = UDim2.new(0, 0, 1, -60)
+    ProfileBtn.BackgroundTransparency = 1
     ProfileBtn.Text = ""
     
-    local profCorner = Instance.new("UICorner", ProfileBtn)
-    profCorner.CornerRadius = UDim.new(0, 8)
-    
-    local pBtnStroke = Instance.new("UIStroke", ProfileBtn)
-    pBtnStroke.Color = Color3.fromRGB(20, 28, 45)
+    local pIndicatorLine = Instance.new("Frame", ProfileBtn)
+    pIndicatorLine.Name = "IndicatorLine"
+    pIndicatorLine.Size = UDim2.new(0, 3, 0, 24)
+    pIndicatorLine.Position = UDim2.new(0, 0, 0.5, -12)
+    pIndicatorLine.BackgroundColor3 = Color3.fromRGB(212, 143, 56)
+    pIndicatorLine.BorderSizePixel = 0
+    pIndicatorLine.Visible = false
+    Instance.new("UICorner", pIndicatorLine).CornerRadius = UDim.new(0, 2)
 
     local AvatarContainer = Instance.new("Frame", ProfileBtn)
-    AvatarContainer.Size = UDim2.new(0, 28, 0, 28)
-    AvatarContainer.Position = UDim2.new(0, 8, 0.5, -14)
+    AvatarContainer.Size = UDim2.new(0, 32, 0, 32)
+    AvatarContainer.Position = UDim2.new(0, 16, 0.5, -16)
     AvatarContainer.BackgroundColor3 = Color3.fromRGB(15, 22, 38)
     
     local avCorner = Instance.new("UICorner", AvatarContainer)
@@ -282,33 +302,31 @@ local function LaunchMainScript(keyRecord)
     AvatarImg.Size = UDim2.new(1, 0, 1, 0)
     AvatarImg.BackgroundTransparency = 1
     AvatarImg.Image = userAvatarIcon
-    
-    local imgCorner = Instance.new("UICorner", AvatarImg)
-    imgCorner.CornerRadius = UDim.new(1, 0)
+    Instance.new("UICorner", AvatarImg).CornerRadius = UDim.new(1, 0)
 
     local PName = Instance.new("TextLabel", ProfileBtn)
-    PName.Size = UDim2.new(1, -44, 0, 16)
-    PName.Position = UDim2.new(0, 42, 0, 6)
+    PName.Size = UDim2.new(1, -60, 0, 16)
+    PName.Position = UDim2.new(0, 56, 0, 9)
     PName.BackgroundTransparency = 1
     PName.Font = Enum.Font.GothamBold
-    PName.TextSize = 11
+    PName.TextSize = 12
     PName.TextColor3 = Color3.fromRGB(240, 240, 245)
     PName.Text = LocalPlayer.Name
     PName.TextXAlignment = Enum.TextXAlignment.Left
 
     local PTier = Instance.new("TextLabel", ProfileBtn)
-    PTier.Size = UDim2.new(1, -44, 0, 14)
-    PTier.Position = UDim2.new(0, 42, 0, 22)
+    PTier.Size = UDim2.new(1, -60, 0, 14)
+    PTier.Position = UDim2.new(0, 56, 0, 25)
     PTier.BackgroundTransparency = 1
     PTier.Font = Enum.Font.GothamBlack
-    PTier.TextSize = 8
-    PTier.TextColor3 = Color3.fromRGB(254, 190, 16)
+    PTier.TextSize = 9
+    PTier.TextColor3 = Color3.fromRGB(254, 190, 16) -- Золотой шильдик PREMIUM как на 20913.jpg
     PTier.Text = subTier:upper()
     PTier.TextXAlignment = Enum.TextXAlignment.Left
 
     ProfileBtn.MouseButton1Click:Connect(function() switchTab("Profile") end)
 
-    -- Вкладка Main (логи изменений)
+    -- Вкладка Main (Приветствие и логи)
     local MainTitleLabel = Instance.new("TextLabel", tabs.Main)
     MainTitleLabel.Size = UDim2.new(1, 0, 0, 25)
     MainTitleLabel.BackgroundTransparency = 1
@@ -325,7 +343,7 @@ local function LaunchMainScript(keyRecord)
     MainDescLabel.Font = Enum.Font.Gotham
     MainDescLabel.TextSize = 11
     MainDescLabel.TextColor3 = Color3.fromRGB(130, 140, 160)
-    MainDescLabel.Text = "Nooble Premium Hub V3.9.7 | MOBILE EDITION"
+    MainDescLabel.Text = "Nooble Premium Hub V3.9.8 | MANUAL EDITION"
     MainDescLabel.TextWrapped = true
     MainDescLabel.TextXAlignment = Enum.TextXAlignment.Left
 
@@ -333,9 +351,7 @@ local function LaunchMainScript(keyRecord)
     LogFrame.Size = UDim2.new(1, 0, 1, -75)
     LogFrame.Position = UDim2.new(0, 0, 0, 75)
     LogFrame.BackgroundColor3 = Color3.fromRGB(12, 17, 30)
-    
-    local logCorner = Instance.new("UICorner", LogFrame)
-    logCorner.CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", LogFrame).CornerRadius = UDim.new(0, 8)
     Instance.new("UIStroke", LogFrame).Color = Color3.fromRGB(45, 35, 25)
 
     local LogScroll = Instance.new("ScrollingFrame", LogFrame)
@@ -348,9 +364,7 @@ local function LaunchMainScript(keyRecord)
     local LogPadding = Instance.new("UIPadding", LogScroll)
     LogPadding.PaddingLeft = UDim.new(0, 12)
     LogPadding.PaddingTop = UDim.new(0, 10)
-    
-    local LogList = Instance.new("UIListLayout", LogScroll)
-    LogList.Padding = UDim.new(0, 5)
+    Instance.new("UIListLayout", LogScroll).Padding = UDim.new(0, 5)
 
     local function addLogLine(text, isHeader)
         local line = Instance.new("TextLabel", LogScroll)
@@ -369,7 +383,7 @@ local function LaunchMainScript(keyRecord)
         for _, child in pairs(LogScroll:GetChildren()) do if child:IsA("TextLabel") then child:Destroy() end end
         if logsData and #logsData > 0 then
             addLogLine("СПИСОК ИЗМЕНЕНИЙ ХАБА:", true)
-            addLogLine(logsData[1].changes or "• Стабильная мобильная версия софта.", false)
+            addLogLine(logsData[1].changes or "• Удален автопоиск. Полностью ручная настройка целей.", false)
         else
             addLogLine("Лог изменений временно не найден.", true)
         end
@@ -474,8 +488,8 @@ local function LaunchMainScript(keyRecord)
     MainPodiumInput.Size = UDim2.new(1, 0, 0, 42)
     MainPodiumInput.Position = UDim2.new(0, 0, 0, 54)
     MainPodiumInput.BackgroundColor3 = Color3.fromRGB(14, 20, 35)
-    MainPodiumInput.PlaceholderText = "Номер подиума (Пусто = автопоиск)..."
-    MainPodiumInput.PlaceholderColor3 = Color3.fromRGB(80, 95, 120)
+    MainPodiumInput.PlaceholderText = "Введите номер подиума (Обязательно)..."
+    MainPodiumInput.PlaceholderColor3 = Color3.fromRGB(100, 115, 140)
     MainPodiumInput.Text = ""
     MainPodiumInput.Font = Enum.Font.Gotham
     MainPodiumInput.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -501,15 +515,19 @@ local function LaunchMainScript(keyRecord)
     Instance.new("UICorner", ActionBtn).CornerRadius = UDim.new(0, 10)
     makePremiumButton(ActionBtn, Color3.fromRGB(213, 105, 30), Color3.fromRGB(243, 135, 60))
 
-    -- Вкладка Info (консоль)
-    local ConsoleFrame = Instance.new("ScrollingFrame", tabs.Info)
+    -- Вкладка Info (Консоль)
+    ConsoleFrame = Instance.new("ScrollingFrame", tabs.Info)
     ConsoleFrame.Size = UDim2.new(1, 0, 1, 0)
     ConsoleFrame.BackgroundColor3 = Color3.fromRGB(7, 10, 18)
     ConsoleFrame.CanvasSize = UDim2.new(0, 0, 0, 1000)
+    ConsoleFrame.ScrollBarThickness = 4
+    ConsoleFrame.ScrollBarImageColor3 = Color3.fromRGB(212, 143, 56)
     Instance.new("UICorner", ConsoleFrame).CornerRadius = UDim.new(0, 8)
     Instance.new("UIStroke", ConsoleFrame).Color = Color3.fromRGB(45, 35, 25)
     Instance.new("UIPadding", ConsoleFrame).PaddingLeft = UDim.new(0, 10)
+    
     local ConsoleList = Instance.new("UIListLayout", ConsoleFrame)
+    ConsoleList.SortOrder = Enum.SortOrder.LayoutOrder
 
     consoleLogFunction = function(msg)
         local logItem = Instance.new("TextLabel", ConsoleFrame)
@@ -521,8 +539,9 @@ local function LaunchMainScript(keyRecord)
         logItem.Text = " [SYSTEM]: " .. msg
         logItem.TextXAlignment = Enum.TextXAlignment.Left
         
-        task.wait(0.05)
-        ConsoleFrame.CanvasPosition = Vector2.new(0, ConsoleFrame.CanvasSize.Y.Offset)
+        -- ФИКС: Принудительно удерживаем скролл на самом НАЧАЛЕ (вверху страницы)
+        task.wait(0.02)
+        ConsoleFrame.CanvasPosition = Vector2.new(0, 0)
     end
 
     switchTab("Main")
@@ -568,18 +587,17 @@ local function LaunchMainScript(keyRecord)
         manualPodiumText = newText:gsub(" ", "")
         if MainPodiumInput.Text ~= manualPodiumText then MainPodiumInput.Text = manualPodiumText end
         if MiniInput.Text ~= manualPodiumText then MiniInput.Text = manualPodiumText end
-        if consoleLogFunction then consoleLogFunction("Установлена цель: " .. (manualPodiumText ~= "" and manualPodiumText or "автопоиск")) end
+        if consoleLogFunction then consoleLogFunction("Установлена цель: " .. (manualPodiumText ~= "" and manualPodiumText or "ожидание ввода")) end
     end
     MainPodiumInput:GetPropertyChangedSignal("Text"):Connect(function() UpdateGlobalTargetText(MainPodiumInput.Text) end)
     MiniInput:GetPropertyChangedSignal("Text"):Connect(function() UpdateGlobalTargetText(MiniInput.Text) end)
 
     ---------------------------------------------------------------------------
-    -- 📱 СОЗДАНИЕ ПЛАВАЮЩЕЙ МОБИЛЬНОЙ КНОПКИ (FLOATING ACTION BUTTON)
+    -- 📱 СОЗДАНИЕ ПЛАВАЮЩЕЙ МОБИЛЬНОЙ КНОПКИ
     ---------------------------------------------------------------------------
     local FloatingMobileButton = Instance.new("TextButton")
     FloatingMobileButton.Name = "NoobleFloatingButton"
     FloatingMobileButton.Size = UDim2.new(0, 46, 0, 46)
-    -- Безопасная дефолтная позиция слева, чтобы не накладываться на управление
     FloatingMobileButton.Position = UDim2.new(0, 25, 0.4, 0) 
     FloatingMobileButton.BackgroundColor3 = Color3.fromRGB(11, 16, 28)
     FloatingMobileButton.Text = "⚙️"
@@ -589,21 +607,18 @@ local function LaunchMainScript(keyRecord)
     FloatingMobileButton.Parent = CurrentMainGui
 
     local fbCorner = Instance.new("UICorner", FloatingMobileButton)
-    fbCorner.CornerRadius = UDim.new(1, 0) -- Идеальный круг
+    fbCorner.CornerRadius = UDim.new(1, 0)
 
     local fbStroke = Instance.new("UIStroke", FloatingMobileButton)
-    fbStroke.Color = Color3.fromRGB(212, 143, 56) -- Золотой контур кнопки
+    fbStroke.Color = Color3.fromRGB(212, 143, 56)
     fbStroke.Thickness = 1.5
 
-    -- Делаем кнопку перетаскиваемой по всему экрану тачем
     makeElementDraggable(FloatingMobileButton)
-
-    -- Переключение видимости основного меню при клике на плавающую кнопку
     FloatingMobileButton.MouseButton1Click:Connect(function()
         MainFrame.Visible = not MainFrame.Visible
     end)
 
-    -- Хоткеи клавиатуры для ПК-тестов
+    -- Хоткеи клавиатуры для ПК
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
         if input.KeyCode == Enum.KeyCode.M then
@@ -615,7 +630,7 @@ local function LaunchMainScript(keyRecord)
     end)
 
     ---------------------------------------------------------------------------
-    -- 🔁 ЛОГИКА ОЧЕРЕДИ ДЮПА
+    -- 🔁 ЧИСТАЯ РУЧНАЯ ОЧЕРЕДЬ ДЮПА (АВТОПОИСК ПОЛНОСТЬЮ УДАЛЕН)
     ---------------------------------------------------------------------------
     local function SendPackets(podiumTarget)
         pcall(function()
@@ -631,64 +646,23 @@ local function LaunchMainScript(keyRecord)
         end)
     end
 
-    local function UpdatePodiumQueue()
-        if manualPodiumText ~= "" then
-            local targets = {}
-            for part in string.gmatch(manualPodiumText, "[^,]+") do
-                table.insert(targets, tonumber(part) or part)
-            end
-            currentPodiumTargets = targets
-            currentQueueIndex = 1
-            if consoleLogFunction then consoleLogFunction("🔍 Очередь обновлена (ручной ввод): " .. HttpService:JSONEncode(targets)) end
-            return true
-        end
-        
-        local targets = {}
-        local foundPlotModel = nil
-        local l_Packages = ReplicatedStorage:WaitForChild("Packages", 5)
-        local synchronizer = l_Packages and l_Packages:FindFirstChild("Synchronizer") and require(l_Packages.Synchronizer)
-        
-        if synchronizer then
-            for _, obj in pairs(workspace:GetChildren()) do
-                local channel = synchronizer:Get(obj.Name)
-                if channel and channel.Get then
-                    if channel:Get("Owner") == LocalPlayer then
-                        foundPlotModel = obj
-                        break
-                    end
-                end
-            end
-        end
-        
-        if not foundPlotModel then
-            for _, obj in pairs(workspace:GetChildren()) do
-                if obj:FindFirstChild("AnimalPodiums") and obj:GetAttribute("Tier") ~= nil then
-                    foundPlotModel = obj
-                    break
-                end
-            end
-        end
-
-        if foundPlotModel then
-            local podiumsFolder = foundPlotModel:FindFirstChild("AnimalPodiums")
-            if podiumsFolder then
-                for _, podium in pairs(podiumsFolder:GetChildren()) do
-                    table.insert(targets, tonumber(podium.Name) or podium.Name)
-                end
-            end
-        end
-        
-        if #targets > 0 then
-            table.sort(targets, function(a, b) return (tonumber(a) or 0) < (tonumber(b) or 0) end)
-            currentPodiumTargets = targets
-            currentQueueIndex = 1
-            if consoleLogFunction then consoleLogFunction("🟢 ОЧЕРЕДЬ ЗАПОЛНЕНА. Найдено подиумов: " .. #targets) end
-            return true
-        else
-            currentPodiumTargets = {}
-            if consoleLogFunction then consoleLogFunction("❌ Нет доступных подиумов.") end
+    local function BuildManualQueue()
+        if manualPodiumText == "" then
+            if consoleLogFunction then consoleLogFunction("⚠️ ОШИБКА: Запуск невозможен. Сначала введите номер подиума!") end
+            sendSystemNotification("Внимание", "Введите номер подиума!", 3)
             return false
         end
+
+        local targets = {}
+        for part in string.gmatch(manualPodiumText, "[^,]+") do
+            local num = tonumber(part)
+            table.insert(targets, num or part)
+        end
+        
+        currentPodiumTargets = targets
+        currentQueueIndex = 1
+        if consoleLogFunction then consoleLogFunction("🟢 Очередь построена вручную: " .. HttpService:JSONEncode(targets)) end
+        return true
     end
 
     local dupeListener = ProximityPromptService.PromptTriggered:Connect(function(activatedPrompt, player)
@@ -712,17 +686,18 @@ local function LaunchMainScript(keyRecord)
 
     local function ToggleDupeMode()
         if not isDupeActive then
-            local ready = UpdatePodiumQueue()
+            local ready = BuildManualQueue()
             if not ready then return end
             isDupeActive = true
             ActionBtn.Text = "СТОП"
             makePremiumButton(ActionBtn, Color3.fromRGB(200, 50, 50), Color3.fromRGB(230, 80, 80))
-            sendSystemNotification("Queue Dupe", "Включено! Кликай промпты.", 3)
+            sendSystemNotification("Queue Dupe", "Включено! Активируй промпты.", 3)
         else
             isDupeActive = false
             ActionBtn.Text = "СТАРТ"
             makePremiumButton(ActionBtn, Color3.fromRGB(213, 105, 30), Color3.fromRGB(243, 135, 60))
             currentPodiumTargets = {}
+            if consoleLogFunction then consoleLogFunction("🛑 Дюп остановлен пользователем.") end
             sendSystemNotification("Queue Dupe", "Остановлено.", 3)
         end
     end
